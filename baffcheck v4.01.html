@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SW2.5 バフデバフチェッカー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .buff-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #buffinputarea {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        /* <li>要素（一行）のスタイル */
+        #buffinputarea li {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px dotted #ff0000;
+            /* R値による背景色変更のためにtransitionを追加すると滑らかになる */
+            transition: background-color 0.8s ease;
+        }
+
+        #buffinputarea li:last-child {
+            border-bottom: none;
+        }
+
+        #buffinputarea input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+
+        #buffinputarea input[type="number"] {
+            padding: 8px;
+            width: 70px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+
+        /* 削除ボタンのスタイル */
+        .removeButton {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .removeButton:hover {
+            background-color: #c0392b;
+        }
+
+        /* 出力エリアのスタイル */
+        #outputArea {
+            margin-top: 15px;
+            border: 2px solid #3498db;
+            /* 青い枠で強調 */
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+            font-size: 1.1em;
+        }
+
+        .output-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+
+        .result-line {
+            padding: 3px 0;
+        }
+
+        .ability-name {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .buff-positive {
+            color: green;
+        }
+
+        .buff-negative {
+            color: red;
+        }
+
+        .text {
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        .nocopy {
+            color: #ff0000;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>SW2.5 バフデバフチェッカー</h1>
+    <div class="buff-container">
+        <div class="output-title">バフ/デバフ入力リスト</div>
+        <!--プルダウン-->
+        <select name="buff" id="copyTarget">
+            <option value="" class="nocopy">選択すればコピーできます</option>
+            <option value="" class="nocopy">ステータス系（コピー不可）</option>
+            <!--ステータス系をまとめる-->
+            <option value="防護点">防護点</option>
+            <option value="HP">HP</option>
+            <option value="MP">MP</option>
+            <option value="穢れ">穢れ</option>
+            <option value="器用度">器用度</option>
+            <option value="器用度B">器用度B</option>
+            <option value="敏捷度">敏捷度</option>
+            <option value="敏捷度B">敏捷度B</option>
+            <option value="筋力">筋力</option>
+            <option value="筋力B">筋力B</option>
+            <option value="生命力">生命力</option>
+            <option value="生命力B">生命力B</option>
+            <option value="知力">知力</option>
+            <option value="知力B">知力B</option>
+            <option value="精神力">精神力</option>
+            <option value="精神力B">精神力B</option>
+            <option value="魔力">魔力</option>
+            <option value="移動力">移動力</option>
+            <option value="魔物知識">魔物知識</option>
+            <option value="先制力">先制力</option>
+            <option value="必筋">必筋</option>
+            <option value="武器必筋">武器必筋</option>
+            <option value="防具必筋">防具必筋</option>
+            <option value="" class="nocopy">判定系（コピー不可）</option>
+            <!--判定系をまとめる-->
+            <option value="生命抵抗力">生命抵抗力</option>
+            <option value="精神抵抗力">精神抵抗力</option>
+            <option value="命中力">命中力</option>
+            <option value="C値修正">C値修正</option>
+            <option value="追加D">追加D</option>
+            <option value="魔法追加D">魔法追加D</option>
+            <option value="威力">威力</option>
+            <option value="回避力">回避力</option>
+            <option value="魔法行使">魔法行使</option>
+            <option value="送還判定">送還判定</option>
+            <option value="" class="nocopy">属性系（コピー不可）</option>
+            <!--属性系をまとめる-->
+            <option value="土属性付与">土属性付与</option>
+            <option value="土属性軽減">土属性軽減</option>
+            <option value="水・氷属性付与">水・氷属性付与</option>
+            <option value="水・氷属性軽減">水・氷属性軽減</option>
+            <option value="炎属性付与">炎属性付与</option>
+            <option value="炎属性軽減">炎属性軽減</option>
+            <option value="風属性付与">風属性付与</option>
+            <option value="風属性軽減">風属性軽減</option>
+            <option value="雷属性付与">雷属性付与</option>
+            <option value="雷属性軽減">雷属性軽減</option>
+            <option value="闇属性付与">闇属性付与</option>
+            <option value="闇属性軽減">闇属性軽減</option>
+            <option value="光属性付与">光属性付与</option>
+            <option value="光属性軽減">光属性軽減</option>
+            <option value="" class="nocopy">状態（コピー不可）</option>
+            <!--状態をまとめる-->
+            <option value="飛行">飛行</option>
+            <option value="暗視">暗視</option>
+            <option value="水中">水中</option>
+            <option value="" class="nocopy">その他（コピー不可）</option>
+            <!--その他をまとめる-->
+            <option value="陣気">陣気</option>
+            <option value="天の命脈点">天の命脈点</option>
+            <option value="地の命脈点">地の命脈点</option>
+            <option value="人の命脈点">人の命脈点</option>
+        </select>
+        <button onclick="copyToClipboard()">Copyボタン</button>
+        <!--旧時代の遺物<div class="text">
+            ここで使える物は以下の通り<br>器用度|敏捷度|筋力|生命力|知力|精神力|生命抵抗力|精神抵抗力|魔力|移動力|魔物知識|先制力|必筋|武器必筋|防具必筋|命中力|C値修正|追加D|魔法追加D|威力|回避力|防護点|HP|MP|土属性付与|水・氷属性付与|炎属性付与|風属性付与|雷属性付与|闇属性付与|光属性付与
+            これに半角の+、-、ndn、nd(nは自然数)。※属性付与は適当な数字を入れないと下に表示されません。
+        </div>-->
+        <div>※属性付与等は適当な数字を入れないと下に表示されません。</div>
+        <ul id="buffinputarea">
+            <li>
+                <input id="bufftext" type="text" placeholder="例: 命中力+5、追加D-1d6 数字等は半角で">
+                <input type="number" id="numberControl" value="0" min="-60" max="60" step="1" placeholder="固定値">
+                <button class="removeButton">削除</button>
+            </li>
+        </ul>
+        <button id="addButton">枠を追加する</button>
+
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc;">
+            <span style="font-weight: bold;">R値一括操作:</span>
+            <input type="number" id="rValueStep" value="1" style="width: 50px; padding: 5px;" min="1" max="50">
+            <button id="rValueAdd"
+                style="padding: 5px 10px; background-color: #2ecc71; color: white; border: none; border-radius: 3px; cursor: pointer;">R値増やす</button>
+            <button id="rValueSubtract"
+                style="padding: 5px 10px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer;">R値減らす</button>
+        </div>
+
+
+        <div id="outputArea">
+            <div class="output-title">集計結果</div>
+            <p>入力待ちです。</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. IDの取得 ---
+        const addButton = document.getElementById("addButton");
+        const buffinput = document.getElementById("bufftext");
+        const buffInputArea = document.getElementById("buffinputarea");
+        const outputArea = document.getElementById("outputArea");
+
+        // R値一括操作用のIDを取得
+        const rValueStepInput = document.getElementById("rValueStep");
+        const rValueAddButton = document.getElementById("rValueAdd");
+        const rValueSubtractButton = document.getElementById("rValueSubtract");
+
+        // 複製元の<li>要素を取得
+        const originalLi = buffinput.parentNode;
+
+        // --- 2. 削除処理関数 ---
+        function handleRemoveButton(event) {
+            const liToRemove = event.currentTarget.parentNode;
+            const ulParent = liToRemove.parentNode;
+
+            if (ulParent) {
+                ulParent.removeChild(liToRemove);
+                updateOutput(); // 削除後に出力エリアを更新
+            }
+        }
+
+        // --- 3. イベントリスナーの設定関数 ---
+        function setupInputListeners(liElement) {
+            // すべての入力フィールドに入力イベントリスナーを設定
+            const inputs = liElement.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', updateOutput); // inputイベントで出力エリアを更新
+            });
+
+            // 削除ボタンにもリスナーを設定
+            const removeButton = liElement.querySelector('.removeButton');
+            if (removeButton) {
+                removeButton.addEventListener('click', handleRemoveButton);
+            }
+        }
+
+        // --- 4. 枠の追加処理 ---
+        addButton.addEventListener('click', function () {
+            const newLi = originalLi.cloneNode(true);
+
+            // IDと値をクリア
+            const newInputText = newLi.querySelector('input[type="text"]');
+            newInputText.id = 'bufftext_' + Date.now();
+            newInputText.value = '';
+
+            const newInputNumber = newLi.querySelector('input[type="number"]');
+            newInputNumber.value = 0;
+
+            setupInputListeners(newLi); // 新しい要素にリスナーを設定
+
+            buffInputArea.appendChild(newLi);
+            updateOutput(); // 追加後に出力エリアを更新
+        });
+
+        // --- 5. 初期要素へのイベントリスナー設定 ---
+        setupInputListeners(originalLi);
+
+
+        // --- R値一括操作のロジック ---
+        function adjustAllRValues(multiplier) {
+            const step = parseInt(rValueStepInput.value) || 1;
+            const adjustment = step * multiplier;
+
+            const allRInputs = buffInputArea.querySelectorAll('input[type="number"]');
+
+            allRInputs.forEach(input => {
+                let currentValue = parseInt(input.value) || 0;
+                let newValue = currentValue + adjustment;
+
+                const min = parseInt(input.min) || -50;
+                const max = parseInt(input.max) || 50;
+
+                newValue = Math.max(min, Math.min(max, newValue));
+
+                input.value = newValue;
+            });
+
+            updateOutput();
+        }
+
+        // イベントリスナーの追加
+        rValueAddButton.addEventListener('click', () => adjustAllRValues(1));
+        rValueSubtractButton.addEventListener('click', () => adjustAllRValues(-1));
+
+        // コピーシステム
+        function copyToClipboard() {
+            // 1. セレクトボックス要素を取得
+            var copyTarget = document.getElementById("copyTarget");
+
+            // 2. 選択されている選択肢の「テキスト（表示名）」を取得
+            // value（器用度）ではなく textContent を使う
+            var selectedText = copyTarget.options[copyTarget.selectedIndex].textContent;
+
+            // 3. 選択肢が空（初期状態）の場合は何もしない
+            if (copyTarget.value === "") {
+                alert("コピーする項目を選択してください");
+                return;
+            }
+
+            // 4. クリップボードにコピーするための「一時的な入力欄」を作る
+            var tempInput = document.createElement("input");
+            tempInput.value = selectedText;
+            document.body.appendChild(tempInput);
+
+            // 5. その入力欄を選択してコピーを実行
+            tempInput.select();
+            document.execCommand("copy");
+
+            // 6. 使い終わった一時的な入力欄を消す
+            document.body.removeChild(tempInput);
+
+            // コピー完了アラート
+            alert("コピーしました: " + selectedText);
+        }
+
+        // --- 6. 修正値の解析関数 (修正版) ---
+        function parseModifier(modifierString) {
+            // パターン1: ダイスを含む場合 (例: +1d6, -2d8)
+            const diceMatch = modifierString.match(/([\+\-])(\d+d\d*)/);
+
+            if (diceMatch) {
+                return { fixed: 0, dice: diceMatch[1] + diceMatch[2] };
+            }
+
+            // パターン2: 固定値のみの場合 (例: +5, -10)
+            const fixedMatch = modifierString.match(/([\+\-])(\d+)$/);
+
+            if (fixedMatch) {
+                const sign = fixedMatch[1];
+                const fixedValue = parseInt(fixedMatch[2]);
+                const resultFixed = (sign === '+') ? fixedValue : -fixedValue;
+                return { fixed: resultFixed, dice: "" };
+            }
+
+            return null;
+        }
+
+        // --- 7. 出力エリアを更新するメイン関数 ---
+
+        const regex = /(器用度|敏捷度|筋力|生命力|知力|精神力|生命抵抗力|精神抵抗力|魔力|移動力|魔物知識|先制力|必筋|武器必筋|防具必筋|命中力|C値修正|追加D|魔法追加D|威力|回避力|防護点|HP|MP|土属性付与|水・氷属性付与|炎属性付与|風属性付与|雷属性付与|闇属性付与|光属性付与|魔法行使|送還判定|飛行|暗視|水中|炎属性軽減|土属性軽減|水・氷属性軽減|風属性軽減|雷属性軽減|闇属性軽減|光属性軽減|穢れ|器用度B|敏捷度B|筋力B|生命力B|知力B|精神力B|陣気|天の命脈点|地の命脈点|人の命脈点)([\+\-]\d+d?\d*)/g;
+
+        function updateOutput() {
+            const totalModifiers = {};
+            const allLi = buffInputArea.querySelectorAll('li');
+
+            allLi.forEach(li => {
+                const textInput = li.querySelector('input[type="text"]');
+                const numberInput = li.querySelector('input[type="number"]'); // R値チェックのために読み込む
+
+                const textValue = textInput ? textInput.value : '';
+                const numberValue = parseInt(numberInput ? numberInput.value : 0); // R値チェックのために値を取得
+
+                // *** R値による<li>の背景色変更ロジック (NEW) ***
+                if (numberValue < 0) {
+                    // R値が負の場合、背景を薄い赤にする
+                    li.style.backgroundColor = '#fee';
+                } else {
+                    // R値が0以上の場合、背景色をクリアする (liのデフォルトの背景色に戻る)
+                    li.style.backgroundColor = 'transparent';
+                }
+                // **********************************************
+
+                // A. テキストフィールドの解析と集計
+                regex.lastIndex = 0;
+                let match;
+
+                while ((match = regex.exec(textValue)) !== null) {
+                    const ability = match[1];
+                    const modifierString = match[2];
+
+                    const parsed = parseModifier(modifierString);
+
+                    if (parsed) {
+                        if (!totalModifiers[ability]) {
+                            totalModifiers[ability] = { fixed: 0, dice: [] };
+                        }
+                        totalModifiers[ability].fixed += parsed.fixed;
+                        if (parsed.dice) {
+                            totalModifiers[ability].dice.push(parsed.dice);
+                        }
+                    }
+                }
+                // B. R値の集計ロジックは削除済み
+            });
+
+            // C. 結果のHTMLへの書き起こし（レンダリング）
+            let outputHTML = '<div class="output-title">集計結果</div>';
+            const keys = Object.keys(totalModifiers).sort();
+
+            if (keys.length === 0) {
+                outputHTML += '<p style="color:#7f8c8d;">有効なバフ/デバフが入力されていません。</p>';
+            } else {
+                keys.forEach(ability => {
+                    const data = totalModifiers[ability];
+
+                    // 固定値の整形
+                    let fixedDisplay = data.fixed !== 0
+                        ? (data.fixed > 0 ? `+${data.fixed}` : `${data.fixed}`)
+                        : (data.dice.length === 0 ? '' : '');
+
+                    // ダイス値の結合
+                    const diceDisplay = data.dice.length > 0
+                        ? (fixedDisplay ? ` (${data.dice.join(' + ')})` : `${data.dice.join(' + ')}`)
+                        : '';
+
+                    // 固定値もダイスも無い場合はスキップ 
+                    if (fixedDisplay === '' && diceDisplay === '') return;
+
+                    const finalDisplay = `${fixedDisplay}${diceDisplay}`.trim();
+                    const colorClass = data.fixed > 0 ? 'buff-positive' : (data.fixed < 0 ? 'buff-negative' : 'inherit');
+
+                    outputHTML += `
+                        <div class="result-line">
+                            <span class="ability-name">${ability}:</span> 
+                            <span class="${colorClass}">${finalDisplay}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            outputArea.innerHTML = outputHTML;
+        }
+
+        // 画面ロード時に一度実行
+        updateOutput();
+
+    </script>
+
+</body>
+
+</html>
