@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SW2.5 バフデバフチェッカー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .buff-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #buffinputarea {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        #buffinputarea li {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px dotted #ff0000;
+            transition: background-color 0.8s ease;
+        }
+
+        #buffinputarea li:last-child {
+            border-bottom: none;
+        }
+
+        #buffinputarea input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+
+        #buffinputarea input[type="number"] {
+            padding: 8px;
+            width: 70px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+
+        .removeButton {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .removeButton:hover {
+            background-color: #c0392b;
+        }
+
+        #outputArea {
+            margin-top: 15px;
+            border: 2px solid #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+            font-size: 1.1em;
+        }
+
+        .output-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+
+        .result-line {
+            padding: 3px 0;
+        }
+
+        .ability-name {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .buff-positive {
+            color: green;
+        }
+
+        .buff-negative {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>SW2.5 バフデバフチェッカー</h1>
+    <div class="buff-container">
+        <div class="output-title">バフ/デバフ入力リスト</div>
+        <div>※属性付与等は適当な数字を入れないと集計されません。</div>
+
+        <ul id="buffinputarea">
+            <li>
+                <select class="buff-select" onchange="applySelection(this)">
+                    <option value="">項目を選択</option>
+                    <optgroup label="ステータス系">
+
+                        <!--ステータス系をまとめる-->
+
+                        <option value="防護点">防護点</option>
+
+                        <option value="HP">HP</option>
+
+                        <option value="MP">MP</option>
+
+                        <option value="穢れ">穢れ</option>
+
+                        <option value="器用度">器用度</option>
+
+                        <option value="器用度B">器用度B</option>
+
+                        <option value="敏捷度">敏捷度</option>
+
+                        <option value="敏捷度B">敏捷度B</option>
+
+                        <option value="筋力">筋力</option>
+
+                        <option value="筋力B">筋力B</option>
+
+                        <option value="生命力">生命力</option>
+
+                        <option value="生命力B">生命力B</option>
+
+                        <option value="知力">知力</option>
+
+                        <option value="知力B">知力B</option>
+
+                        <option value="精神力">精神力</option>
+
+                        <option value="精神力B">精神力B</option>
+
+                        <option value="魔力">魔力</option>
+
+                        <option value="移動力">移動力</option>
+
+                        <option value="魔物知識">魔物知識</option>
+
+                        <option value="先制力">先制力</option>
+
+                        <option value="必筋">必筋</option>
+
+                        <option value="武器必筋">武器必筋</option>
+
+                        <option value="防具必筋">防具必筋</option>
+
+                    </optgroup>
+
+                    <optgroup label="判定系">
+
+                        <!--判定系をまとめる-->
+
+                        <option value="生命抵抗力">生命抵抗力</option>
+
+                        <option value="精神抵抗力">精神抵抗力</option>
+
+                        <option value="命中力">命中力</option>
+
+                        <option value="C値修正">C値修正</option>
+
+                        <option value="追加D">追加D</option>
+
+                        <option value="魔法追加D">魔法追加D</option>
+
+                        <option value="威力">威力</option>
+
+                        <option value="回避力">回避力</option>
+
+                        <option value="魔法行使">魔法行使</option>
+
+                        <option value="送還判定">送還判定</option>
+
+                    </optgroup>
+
+                    <optgroup label="属性系">
+
+                        <!--属性系をまとめる-->
+
+                        <option value="土属性付与">土属性付与</option>
+
+                        <option value="土属性軽減">土属性軽減</option>
+
+                        <option value="水・氷属性付与">水・氷属性付与</option>
+
+                        <option value="水・氷属性軽減">水・氷属性軽減</option>
+
+                        <option value="炎属性付与">炎属性付与</option>
+
+                        <option value="炎属性軽減">炎属性軽減</option>
+
+                        <option value="風属性付与">風属性付与</option>
+
+                        <option value="風属性軽減">風属性軽減</option>
+
+                        <option value="雷属性付与">雷属性付与</option>
+
+                        <option value="雷属性軽減">雷属性軽減</option>
+
+                        <option value="闇属性付与">闇属性付与</option>
+
+                        <option value="闇属性軽減">闇属性軽減</option>
+
+                        <option value="光属性付与">光属性付与</option>
+
+                        <option value="光属性軽減">光属性軽減</option>
+
+                    </optgroup>
+
+                    <optgroup label="状態">
+
+                        <!--状態をまとめる-->
+
+                        <option value="飛行">飛行</option>
+
+                        <option value="暗視">暗視</option>
+
+                        <option value="水中">水中</option>
+
+                    </optgroup>
+
+                    <optgroup label="その他">
+
+                        <!--その他をまとめる-->
+
+                        <option value="陣気">陣気</option>
+
+                        <option value="天の命脈点">天の命脈点</option>
+
+                        <option value="地の命脈点">地の命脈点</option>
+
+                        <option value="人の命脈点">人の命脈点</option>
+
+                    </optgroup>
+                </select>
+                <input type="text" class="buff-text-input" placeholder="例: +5, -1d6" oninput="updateOutput()">
+                <input type="number" class="r-value-input" value="0" min="-60" max="60" step="1"
+                    oninput="updateOutput()">
+                <button class="removeButton" onclick="handleRemoveButton(event)">削除</button>
+            </li>
+        </ul>
+
+        <button id="addButton">枠を追加する</button>
+
+        <div style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ccc;">
+            <span style="font-weight: bold;">R値一括操作:</span>
+            <input type="number" id="rValueStep" value="1" style="width: 50px; padding: 5px;" min="1" max="50">
+            <button id="rValueAdd"
+                style="padding: 5px 10px; background-color: #2ecc71; color: white; border: none; border-radius: 3px; cursor: pointer;">R値増やす</button>
+            <button id="rValueSubtract"
+                style="padding: 5px 10px; background-color: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer;">R値減らす</button>
+        </div>
+
+        <div id="outputArea">
+            <div class="output-title">集計結果</div>
+            <p>入力待ちです。</p>
+        </div>
+    </div>
+
+    <script>
+        const buffInputArea = document.getElementById("buffinputarea");
+        const outputArea = document.getElementById("outputArea");
+        const addButton = document.getElementById("addButton");
+        const rValueStepInput = document.getElementById("rValueStep");
+        const rValueAddButton = document.getElementById("rValueAdd");
+        const rValueSubtractButton = document.getElementById("rValueSubtract");
+
+        const originalLi = buffInputArea.querySelector('li').cloneNode(true);
+
+        const regex = /(器用度|敏捷度|筋力|生命力|知力|精神力|生命抵抗力|精神抵抗力|魔力|移動力|魔物知識|先制力|必筋|武器必筋|防具必筋|命中力|C値修正|追加D|魔法追加D|威力|回避力|防護点|HP|MP|土属性付与|水・氷属性付与|炎属性付与|風属性付与|雷属性付与|闇属性付与|光属性付与|魔法行使|送還判定|飛行|暗視|水中|炎属性軽減|土属性軽減|水・氷属性軽減|風属性軽減|雷属性軽減|闇属性軽減|光属性軽減|穢れ|器用度B|敏捷度B|筋力B|生命力B|知力B|精神力B|陣気|天の命脈点|地の命脈点|人の命脈点)([\+\-]\d+d?\d*)/g;
+
+        // プルダウン選択時の処理
+        function applySelection(selectElement) {
+            const selectedValue = selectElement.value;
+            if (!selectedValue) return;
+
+            const li = selectElement.closest('li');
+            const textInput = li.querySelector('.buff-text-input');
+
+            // 既存の修正値を保持するか、なければ+0を付与
+            const currentModifier = textInput.value.match(/[\+\-]\d+d?\d*/) || "+0";
+            textInput.value = selectedValue + currentModifier;
+
+            // クリップボードにコピー
+            copyToClipboard(selectedValue);
+            updateOutput();
+        }
+
+        function copyToClipboard(text) {
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+        }
+
+        function handleRemoveButton(event) {
+            const liToRemove = event.currentTarget.closest('li');
+            if (buffInputArea.children.length > 1) {
+                liToRemove.remove();
+                updateOutput();
+            }
+        }
+
+        addButton.addEventListener('click', function () {
+            const newLi = originalLi.cloneNode(true);
+            newLi.querySelector('.buff-text-input').value = '';
+            newLi.querySelector('.r-value-input').value = 0;
+            buffInputArea.appendChild(newLi);
+            updateOutput();
+        });
+
+        function adjustAllRValues(multiplier) {
+            const step = parseInt(rValueStepInput.value) || 1;
+            const adjustment = step * multiplier;
+            const allRInputs = buffInputArea.querySelectorAll('.r-value-input');
+
+            allRInputs.forEach(input => {
+                let newValue = (parseInt(input.value) || 0) + adjustment;
+                input.value = Math.max(-60, Math.min(60, newValue));
+            });
+            updateOutput();
+        }
+
+        rValueAddButton.addEventListener('click', () => adjustAllRValues(1));
+        rValueSubtractButton.addEventListener('click', () => adjustAllRValues(-1));
+
+        function parseModifier(modifierString) {
+            const diceMatch = modifierString.match(/([\+\-])(\d+d\d*)/);
+            if (diceMatch) return { fixed: 0, dice: diceMatch[1] + diceMatch[2] };
+
+            const fixedMatch = modifierString.match(/([\+\-])(\d+)$/);
+            if (fixedMatch) {
+                const fixedValue = parseInt(fixedMatch[2]);
+                return { fixed: (fixedMatch[1] === '+') ? fixedValue : -fixedValue, dice: "" };
+            }
+            return null;
+        }
+
+        function updateOutput() {
+            const totalModifiers = {};
+            const allLi = buffInputArea.querySelectorAll('li');
+
+            allLi.forEach(li => {
+                const textInput = li.querySelector('.buff-text-input');
+                const numberInput = li.querySelector('.r-value-input');
+                const textValue = textInput.value;
+                const numberValue = parseInt(numberInput.value) || 0;
+
+                // 背景色変更
+                li.style.backgroundColor = numberValue < 0 ? '#fee' : 'transparent';
+
+                regex.lastIndex = 0;
+                let match;
+                while ((match = regex.exec(textValue)) !== null) {
+                    const ability = match[1];
+                    const parsed = parseModifier(match[2]);
+                    if (parsed) {
+                        if (!totalModifiers[ability]) totalModifiers[ability] = { fixed: 0, dice: [] };
+                        totalModifiers[ability].fixed += parsed.fixed;
+                        if (parsed.dice) totalModifiers[ability].dice.push(parsed.dice);
+                    }
+                }
+            });
+
+            let outputHTML = '<div class="output-title">集計結果</div>';
+            const keys = Object.keys(totalModifiers).sort();
+
+            if (keys.length === 0) {
+                outputHTML += '<p style="color:#7f8c8d;">有効なバフ/デバフが入力されていません。</p>';
+            } else {
+                keys.forEach(ability => {
+                    const data = totalModifiers[ability];
+                    let fixedDisplay = data.fixed !== 0 ? (data.fixed > 0 ? `+${data.fixed}` : `${data.fixed}`) : (data.dice.length === 0 ? '' : '');
+                    const diceDisplay = data.dice.length > 0 ? (fixedDisplay ? ` (${data.dice.join(' + ')})` : `${data.dice.join(' + ')}`) : '';
+                    if (fixedDisplay === '' && diceDisplay === '') return;
+
+                    const colorClass = data.fixed > 0 ? 'buff-positive' : (data.fixed < 0 ? 'buff-negative' : '');
+                    outputHTML += `<div class="result-line"><span class="ability-name">${ability}:</span> <span class="${colorClass}">${fixedDisplay}${diceDisplay}</span></div>`;
+                });
+            }
+            outputArea.innerHTML = outputHTML;
+        }
+
+        updateOutput();
+    </script>
+</body>
+
+</html>
